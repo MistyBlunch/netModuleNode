@@ -7,11 +7,11 @@ const users = {}
 getMethods = (res, socket) => {
   const uriArr = res.uri.split('/')
   const uri = uriArr[1]
-  const uriQuery = uri.split('?')
+  const uriQuery = uri.split('?')[0]
 
-  if (uri === 'hello' || uriQuery[0] === 'hello') {
+  if (uri === 'hello' || uriQuery === 'hello') {
     socket.write('HTTP/1.1 200 OK\n\nholi!!!')
-  } else if (uri === 'users') {
+  } else if (uri === 'users' || uriQuery === 'users') {
     const usersJsonResponse = JSON.stringify(users, null, 2)
     socket.write(`HTTP/1.1 200 OK\n\n${usersJsonResponse}`)
   } else if (uri === 'user') {
@@ -59,7 +59,12 @@ postMethods = (res, socket) => {
 
 returnValidId = (uriArr, socket) => {
   const idPos = uriArr.length - 1
-  const idUser = uriArr[idPos]
+  let idUser = uriArr[idPos]
+
+  if (isNaN(idUser)) {
+    const IdQuery = idUser.split('?')[0]
+    idUser = IdQuery
+  }
 
   if (idUser === '' || isNaN(idUser)) {
     socket.write('HTTP/1.1 404 ERROR DE MOTOMAMI\n\nIt needs an id')
