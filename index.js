@@ -2,26 +2,31 @@ const parser = require('http-string-parser')
 const net = require('net')
 const port = 3000
 
-const users = []
+const users = {}
 
 getMethods = (res, socket) => {
   const uriArr = res.uri.split('/')
   const uri = uriArr[1]
 
-  if (uri === 'hello') socket.write('HTTP/1.1 200 OK\n\n holi!!!')
+  if (uri === 'hello') socket.write('HTTP/1.1 200 OK\n\nholi!!!')
   else if (uri === 'users') {
     const usersJsonResponse = JSON.stringify(users, null, 2)
-    socket.write(`HTTP/1.1 200 OK\n\n ${usersJsonResponse}`)
+    socket.write(`HTTP/1.1 200 OK\n\n${usersJsonResponse}`)
   } else if (uri === 'user') {
     const idUserString = returnValidId(uriArr, socket)
     const idUser = parseInt(idUserString)
-    const result = users.filter((user) => user.id === idUser)
-    const resultJson = JSON.stringify(result, null, 2)
+    const result = users[idUser]
 
-    if (result.length >= 1)
-      socket.write(`HTTP/1.1 200 OK\n\n ${resultJson}`)
-    else socket.write(`HTTP/1.1 200 OK\n\n Don't exists an user with that id`)
-  } else socket.write('HTTP/1.1 404 ERROR DE MOTOMAMI\n\n not found')
+    if (!result) {
+      socket.write(
+        `HTTP/1.1 404 ERROR DE MOTOMAMI\n\nDon't exists an user with that id`
+      )
+      return
+    }
+
+    const resultJson = JSON.stringify(result, null, 2)
+    socket.write(`HTTP/1.1 200 OK\n\n${resultJson}`)
+  } else socket.write('HTTP/1.1 404 ERROR DE MOTOMAMI\n\nnot found')
 }
 
 postMethods = (res, socket) => {
@@ -33,13 +38,21 @@ postMethods = (res, socket) => {
     let user = userJson
     let idUser = returnValidId(uriArr, socket)
 
+    if (!idUser) return
+
     user.id = parseInt(idUser)
-    users.push(user)
+
+    if (users[user.id]) {
+      socket.write(
+        `HTTP/1.1 404 ERROR DE MOTOMAMI\n\nUser exists with this id`
+      )
+      return
+    }
+
+    users[user.id] = user
 
     socket.write(`HTTP/1.1 200 OK\n\nuser created!\n`)
-
-    console.log(users)
-  } else socket.write('HTTP/1.1 404 ERROR DE MOTOMAMI\n\n not found')
+  } else socket.write('HTTP/1.1 404 ERROR DE MOTOMAMI\n\nnot found')
 }
 
 returnValidId = (uriArr, socket) => {
@@ -47,7 +60,7 @@ returnValidId = (uriArr, socket) => {
   const idUser = uriArr[idPos]
 
   if (idUser === '' || isNaN(idUser)) {
-    socket.write('HTTP/1.1 404 ERROR DE MOTOMAMI\n\n It needs an id')
+    socket.write('HTTP/1.1 404 ERROR DE MOTOMAMI\n\nIt needs an id')
     return
   }
 
