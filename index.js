@@ -7,9 +7,11 @@ const users = {}
 getMethods = (res, socket) => {
   const uriArr = res.uri.split('/')
   const uri = uriArr[1]
+  const uriQuery = uri.split('?')
 
-  if (uri === 'hello') socket.write('HTTP/1.1 200 OK\n\nholi!!!')
-  else if (uri === 'users') {
+  if (uri === 'hello' || uriQuery[0] === 'hello') {
+    socket.write('HTTP/1.1 200 OK\n\nholi!!!')
+  } else if (uri === 'users') {
     const usersJsonResponse = JSON.stringify(users, null, 2)
     socket.write(`HTTP/1.1 200 OK\n\n${usersJsonResponse}`)
   } else if (uri === 'user') {
