@@ -14,7 +14,6 @@ getMethods = (res, socket) => {
 
   if (path === 'hello' || pathFromQuery === 'hello') {
     const q = qs.parse(query)
-
     socket.write(`HTTP/1.1 200 OK\n\nholi${' ' + q.name}!!!`)
   } else if (path === 'users' || pathFromQuery === 'users') {
     const usersJsonResponse = JSON.stringify(users, null, 2)
