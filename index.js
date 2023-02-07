@@ -1,21 +1,26 @@
 const parser = require('http-string-parser')
+const qs = require('querystring')
 const net = require('net')
 const port = 8000
 
 const users = {}
 
 getMethods = (res, socket) => {
-  const uriArr = res.uri.split('/')
-  const uri = uriArr[1]
-  const uriQuery = uri.split('?')[0]
+  const pathArr = res.uri.split('/')
+  const path = pathArr[1]
+  const pathQuery = path.split('?')
+  const pathFromQuery = pathQuery[0]
+  const query = pathQuery[1]
 
-  if (uri === 'hello' || uriQuery === 'hello') {
-    socket.write('HTTP/1.1 200 OK\n\nholi!!!')
-  } else if (uri === 'users' || uriQuery === 'users') {
+  if (path === 'hello' || pathFromQuery === 'hello') {
+    const q = qs.parse(query)
+
+    socket.write(`HTTP/1.1 200 OK\n\nholi${' ' + q.name}!!!`)
+  } else if (path === 'users' || pathFromQuery === 'users') {
     const usersJsonResponse = JSON.stringify(users, null, 2)
     socket.write(`HTTP/1.1 200 OK\n\n${usersJsonResponse}`)
-  } else if (uri === 'user') {
-    const idUserString = returnValidId(uriArr, socket)
+  } else if (path === 'user') {
+    const idUserString = returnValidId(pathArr, socket)
     const idUser = parseInt(idUserString)
     const result = users[idUser]
 
@@ -32,13 +37,13 @@ getMethods = (res, socket) => {
 }
 
 postMethods = (res, socket) => {
-  const uriArr = res.uri.split('/')
-  const uri = uriArr[1]
+  const pathArr = res.uri.split('/')
+  const path = pathArr[1]
 
-  if (uri === 'user') {
+  if (path === 'user') {
     const userJson = JSON.parse(res.body)
     let user = userJson
-    let idUser = returnValidId(uriArr, socket)
+    let idUser = returnValidId(pathArr, socket)
 
     if (!idUser) return
 
@@ -57,9 +62,9 @@ postMethods = (res, socket) => {
   } else socket.write('HTTP/1.1 404 ERROR DE MOTOMAMI\n\nnot found')
 }
 
-returnValidId = (uriArr, socket) => {
-  const idPos = uriArr.length - 1
-  let idUser = uriArr[idPos]
+returnValidId = (pathArr, socket) => {
+  const idPos = pathArr.length - 1
+  let idUser = pathArr[idPos]
 
   if (isNaN(idUser)) {
     const IdQuery = idUser.split('?')[0]
