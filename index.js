@@ -5,6 +5,7 @@ const port = 8000
 
 const users = {}
 
+// GET
 getMethods = (res, socket) => {
   const pathArr = res.uri.split('/')
   const path = pathArr[1]
@@ -35,6 +36,7 @@ getMethods = (res, socket) => {
   } else socket.write('HTTP/1.1 404 ERROR DE MOTOMAMI\n\nnot found')
 }
 
+// POST
 postMethods = (res, socket) => {
   const pathArr = res.uri.split('/')
   const path = pathArr[1]
@@ -61,6 +63,7 @@ postMethods = (res, socket) => {
   } else socket.write('HTTP/1.1 404 ERROR DE MOTOMAMI\n\nnot found')
 }
 
+// Validations
 returnValidId = (pathArr, socket) => {
   const idPos = pathArr.length - 1
   let idUser = pathArr[idPos]
@@ -78,6 +81,7 @@ returnValidId = (pathArr, socket) => {
   return idUser
 }
 
+// Server
 const server = net.createServer((socket) => {
   socket.on('data', (buffer) => {
     const data = buffer.toString('utf-8')
